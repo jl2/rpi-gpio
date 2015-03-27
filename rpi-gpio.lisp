@@ -17,25 +17,37 @@
 
 (defparameter *rpi-gpio-path* "/sys/class/gpio")
 
+(declaim (inline write-gpio read-gpio enable-pin disable-pin set-mode set-pin read-pin))
+
+;; Set safety and debug to 1 because they don't add much code, and prevent segfaults
+(declaim (optimize (speed 3) (safety 1) (debug 1) (size 0) ))
+
 (defun write-gpio (path data)
+  "Write data to the specified GPIO path"
   (with-open-file (outf path :direction :output :if-exists :append)
     (write data :stream outf)))
 
 (defun read-gpio (path)
+  "Read data to the specified GPIO path"
   (with-open-file (inf path :direction :input)
     (read inf)))
 
-(defun enable-pin (num)
-  (write-gpio (format nil "~a/export"  *rpi-gpio-path*) (format nil "~a" num)))
+(defun enable-pin (pin)
+  "Enable specified pin"
+  (write-gpio (format nil "~a/export"  *rpi-gpio-path*) (format nil "~a" pin)))
 
-(defun disable-pin (num)
-  (write-gpio (format nil "~a/unexport" *rpi-gpio-path*) (format nil "~a" num)))
+(defun disable-pin (pin)
+  "Disable specified pin"
+  (write-gpio (format nil "~a/unexport" *rpi-gpio-path*) (format nil "~a" pin)))
 
 (defun set-mode (pin mode)
-    (write-gpio (format nil "~a/gpio~a/direction" *rpi-gpio-path* pin) (format nil "~a" mode)))
+  "Set the specified pin to in our out mode"
+  (write-gpio (format nil "~a/gpio~a/direction" *rpi-gpio-path* pin) (format nil "~a" mode)))
 
 (defun set-pin (pin value)
+  "Set pin to 0 or 1"
   (write-gpio (format nil "~a/gpio~a/value" *rpi-gpio-path* pin) value))
 
 (defun read-pin (pin value)
+  "Read a value from pin"
   (read-gpio (format nil "~a/gpio~a/value" *rpi-gpio-path* pin)))
